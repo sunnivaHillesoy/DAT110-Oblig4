@@ -8,6 +8,16 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libs/gson-2.8.5.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaFX"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Katlin"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OkHttp"/>
+	<classpathentry kind="lib" path="C:/Users/Sunniva/.m2/repository/com/squareup/okhttp3/okhttp/3.4.2/okhttp-3.4.2.jar" sourcepath="C:/Users/Sunniva/.m2/repository/com/squareup/okhttp3/okhttp/3.4.2/okhttp-3.4.2-sources.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="com.squareup.okhttp3"/>
+			<attribute name="maven.artifactId" value="okhttp"/>
+			<attribute name="maven.version" value="3.4.2"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

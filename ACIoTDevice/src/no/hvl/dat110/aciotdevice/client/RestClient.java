@@ -9,6 +9,9 @@ import java.util.Scanner;
 
 import com.google.gson.Gson;
 
+import okhttp3.*;
+
+
 public class RestClient {
 
 	public RestClient() {
@@ -16,98 +19,116 @@ public class RestClient {
 	}
 
 	private static String logpath = "/accessdevice/log";
-	private static final String host = "localhost";
-	private static final int port = 8080;
+	private String host = "localhost";
+	private int port = 8080;
 
-	public void doPostAccessEntry(String message) {
-		Gson gson = new Gson();
-		
-		try (Socket s = new Socket(host, port)){
+
+	public void doPostAccessEntry(String message) {		
+		try (Socket s = new Socket(host, port)) {
+
+			Gson gson = new Gson();
+			// construct the HTTP request
 			String jsonbody = gson.toJson(new AccessMessage(message));
+
+			String httpPutReq = "POST " + logpath + " HTTP/1.1\r\n" + "Host: " + host + "\r\n"
+					+ "Content-type: application/json\r\n" + "Content-length: " + jsonbody.length() + "\r\n"
+					+ "Connection: close\r\n" + "\r\n" + jsonbody + "\r\n";
 			
-			//Construct the HTTP request
-			String httppostrequest = "POST " + logpath + " HTTP/1.1\r\n" + 
-			        "Host: " + host + "\r\n" +
-					"Content-type: application/json\r\n" + 
-			        "Content-length: " + jsonbody.length() + "\r\n" +
-					"Connection: close\r\n" + 
-			        "\r\n" + 
-					jsonbody + 
-					"\r\n";
-			
-			//Send the HTTP request
+			// send the response over the TCP connection
 			OutputStream output = s.getOutputStream();
-			
-			PrintWriter pw = new PrintWriter(output, false);
-			pw.print(httppostrequest);
-			pw.flush();
-			
-			//Read the HTTP response
+
+			PrintWriter prinwrit = new PrintWriter(output, false);
+			prinwrit.print(httpPutReq);
+			prinwrit.flush();
+
+			// read the HTTP response
 			InputStream in = s.getInputStream();
-			Scanner sc = new Scanner(in);
+
+			Scanner reader = new Scanner(in);
 			StringBuilder jsonresponse = new StringBuilder();
 			boolean header = true;
-			
-			while(sc.hasNext()) {
-				String nextline = sc.nextLine();
-				
-				if(header) {
+
+			while (reader.hasNext()) {
+
+				String nextline = reader.nextLine();
+
+				if (header) {
 					System.out.println(nextline);
 				} else {
 					jsonresponse.append(nextline);
 				}
-				
-				if(nextline.isEmpty()) {
+
+				if (nextline.isEmpty()) {
 					header = false;
 				}
 			}
-			System.out.println("BODY: ");
+
+			System.out.println("BODY:");
 			System.out.println(jsonresponse.toString());
-			sc.close();
-			
-		} catch(IOException e) {
-			System.err.println(e);
+
+			reader.close();
+
+		} catch (IOException ex) {
+			System.err.println(ex);
 		}
-		
-		
-		
-		
-		// TODO: implement a HTTP POST on the service to post the message
-		
 	}
+
+//		final MediaType JSON
+//	    = MediaType.parse("application/json; charset=utf-8");
+//		
+//		RequestBody body = RequestBody.create(JSON, message);
+//		OkHttpClient client = new OkHttpClient();
+//
+//		Request request = new Request.Builder()
+//				.url("http://localhost:8080"+logpath)
+//				.post(body)
+//				.build();
+//
+//		System.out.println(request.toString());
+//
+//		try (Response response = client.newCall(request).execute()) {
+//			System.out.println (response.body().string());
+//		}
+//		catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	private static String codepath = "/accessdevice/code";
 	
 	public AccessCode doGetAccessCode() {
-		AccessCode code = null;
+		AccessCode code = new AccessCode();
 		
-		try(Socket s = new Socket(host, port)){
-			
-			//Construct the HTTP request
+		try (Socket s = new Socket(host, port)) {
+
+			// construct the GET request
 			String httpgetrequest = "GET " + codepath + " HTTP/1.1\r\n" + "Accept: application/json\r\n"
 					+ "Host: localhost\r\n" + "Connection: close\r\n" + "\r\n";
-			
-			//send the HTTP request
+
+			// sent the HTTP request
 			OutputStream output = s.getOutputStream();
-			
+
 			PrintWriter pw = new PrintWriter(output, false);
+
 			pw.print(httpgetrequest);
 			pw.flush();
-			
-			//read the HTTP response
+
+			// read the HTTP response
 			InputStream in = s.getInputStream();
-			
-			Scanner sc = new Scanner(in);
+
+			Scanner scan = new Scanner(in);
 			StringBuilder jsonresponse = new StringBuilder();
 			boolean header = true;
 
-			while (sc.hasNext()) {
+			while (scan.hasNext()) {
 
-				String nextline = sc.nextLine();
+				String nextline = scan.nextLine();
 
-				if (!header) {
+				if (header) {
+					System.out.println(nextline);
+				} else {
 					jsonresponse.append(nextline);
-				} 
+				}
 
 				// simplified approach to identifying start of body: the empty line
 				if (nextline.isEmpty()) {
@@ -115,16 +136,36 @@ public class RestClient {
 				}
 
 			}
-			
-			sc.close();
-			
-			
-		} catch(IOException e) {
-			System.err.println(e);
+	
+			System.out.println(jsonresponse.toString());
+			Gson gson = new Gson();
+			code = gson.fromJson(jsonresponse.toString(), AccessCode.class);
+			scan.close();
+
+
+		} catch (IOException ex) {
+			System.err.println(ex);
 		}
-		
-		// TODO: implement a HTTP GET on the service to get current access code
-		
+//		AccessCode code = null;
+//		
+//		OkHttpClient client = new OkHttpClient();
+//		
+//		Request req = new Request.Builder()
+//				.url("http://localhost:8080" + codepath)
+//				.get()
+//				.build();
+//		
+//		System.out.println(req.toString());
+//		
+//		try(Response response = client.newCall(req).execute()){
+//			if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+//			Gson gson = new Gson();
+//			code = gson.fromJson(response.body().string(), AccessCode.class);
+//			
+//		} catch (IOException e){
+//			e.printStackTrace();
+//		}
+//		
 		return code;
 	}
 }
