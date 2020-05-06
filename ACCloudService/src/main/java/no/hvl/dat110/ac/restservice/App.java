@@ -8,6 +8,7 @@ import static spark.Spark.post;
 import static spark.Spark.delete;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 /**
  * Hello world!
@@ -43,8 +44,50 @@ public class App {
 		 	return gson.toJson("IoT Access Control Device");
 		});
 		
-		// TODO: implement the routes required for the access control service
-		// as per the HTTP/REST operations describined in the project description
+		
+		post("accessdevice/log", (req, res) -> {
+			Gson gson = new Gson();
+			JsonObject jsonobject = gson.fromJson(req.body(), JsonObject.class);
+			String msg = jsonobject.get("message").getAsString();
+			int id = accesslog.add(msg);
+			return gson.toJson(accesslog.get(id));
+		});
+		
+		get("/accessdevice/log", (req, res) -> {
+			
+			return accesslog.toJson();
+		});
+		
+		get("/accessdevice/log/:id", (req, res) -> {
+			int id1 = -1;
+			Gson gson = new Gson();
+			
+			try {
+				id1 = Integer.parseInt(req.params(":id"));
+			} catch(Exception e) {
+				System.out.println("Not valid id");
+				e.printStackTrace();
+				
+			}
+			return gson.toJson(accesslog.get(id1));
+		});
+		
+		put("/accessdevice/code", (req, res) -> {
+			Gson gson = new Gson();
+			AccessCode a = gson.fromJson(req.body(), AccessCode.class);
+			accesscode.setAccesscode(a.getAccesscode());
+			return req.body();
+		});
+		
+		get("/accessdevice/code", (req, res) -> {
+			Gson gson = new Gson();
+			return gson.toJson(accesscode);
+		});
+		
+		delete("accessdevice/log/", (req, res) -> {
+			accesslog.clear();
+			return accesslog.toJson();
+		});
 		
     }
     
